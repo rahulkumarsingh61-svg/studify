@@ -1,0 +1,683 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Studify - The Study App</title>
+    <style>
+        :root {
+            --primary: #4f46e5;
+            --primary-hover: #4338ca;
+            --bg: #f8fafc;
+            --card-bg: #ffffff;
+            --text: #0f172a;
+            --text-muted: #64748b;
+            --border: #e2e8f0;
+            --premium: #eab308;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+        }
+
+        body {
+            background-color: var(--bg);
+            color: var(--text);
+            display: flex;
+            flex-direction: column;
+            min-height: 100vh;
+        }
+
+        header {
+            background: var(--card-bg);
+            border-bottom: 1px solid var(--border);
+            padding: 1rem 2rem;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            position: sticky;
+            top: 0;
+            z-index: 100;
+        }
+
+        .logo {
+            font-size: 1.5rem;
+            font-weight: 700;
+            color: var(--primary);
+        }
+
+        .nav-actions {
+            display: flex;
+            gap: 1rem;
+            align-items: center;
+        }
+
+        button {
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            border: none;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .btn-primary {
+            background: var(--primary);
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: var(--primary-hover);
+        }
+
+        .btn-outline {
+            background: transparent;
+            border: 1px solid var(--border);
+            color: var(--text);
+        }
+
+        .btn-premium-status {
+            background: #fef9c3;
+            color: #854d0e;
+            border: 1px solid #fde047;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 2rem auto;
+            padding: 0 1rem;
+            width: 100%;
+            flex: 1;
+        }
+
+        /* Tabs & Classes Navigation */
+        .class-selector {
+            display: flex;
+            gap: 0.5rem;
+            overflow-x: auto;
+            padding-bottom: 1rem;
+            margin-bottom: 2rem;
+        }
+
+        .class-btn {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            padding: 0.5rem 1.2rem;
+            white-space: nowrap;
+        }
+
+        .class-btn.active {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        /* Access Type Tabs */
+        .access-tabs {
+            display: flex;
+            gap: 1rem;
+            margin-bottom: 1.5rem;
+            border-bottom: 2px solid var(--border);
+        }
+
+        .tab-link {
+            padding: 0.75rem 1rem;
+            cursor: pointer;
+            font-weight: 600;
+            color: var(--text-muted);
+            border-bottom: 2px solid transparent;
+            margin-bottom: -2px;
+        }
+
+        .tab-link.active {
+            color: var(--primary);
+            border-bottom-color: var(--primary);
+        }
+
+        /* Video Layout */
+        .main-layout {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 2rem;
+        }
+
+        @media (min-width: 768px) {
+            .main-layout {
+                grid-template-columns: 2fr 1fr;
+            }
+        }
+
+        .video-player-container {
+            background: #000;
+            border-radius: 0.75rem;
+            overflow: hidden;
+            aspect-ratio: 16/9;
+            position: relative;
+            box-shadow: 0 4px 6px -1px rgb(0 0 0 / 0.1);
+        }
+
+        .video-player-container iframe {
+            width: 100%;
+            height: 100%;
+            border: none;
+        }
+
+        .video-placeholder {
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            align-items: center;
+            height: 100%;
+            color: white;
+            text-align: center;
+            padding: 2rem;
+            background: #1e293b;
+        }
+
+        .video-grid {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+            gap: 1.5rem;
+        }
+
+        .video-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.5rem;
+            overflow: hidden;
+            cursor: pointer;
+            position: relative;
+            display: flex;
+            flex-direction: column;
+        }
+
+        .thumbnail-mock {
+            background: #cbd5e1;
+            aspect-ratio: 16/9;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            color: var(--text-muted);
+            position: relative;
+        }
+
+        .badge {
+            position: absolute;
+            top: 0.5rem;
+            right: 0.5rem;
+            padding: 0.25rem 0.5rem;
+            border-radius: 0.25rem;
+            font-size: 0.75rem;
+            font-weight: bold;
+        }
+
+        .badge-free { background: #dcfce7; color: #166534; }
+        .badge-premium { background: #fef9c3; color: #854d0e; }
+
+        .video-info {
+            padding: 1rem;
+            flex: 1;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+        }
+
+        .video-title {
+            font-weight: 600;
+            margin-bottom: 0.25rem;
+            font-size: 0.95rem;
+        }
+
+        /* Admin & Login Panels */
+        .admin-panel, .login-panel {
+            display: none;
+            background: var(--card-bg);
+            border: 1px solid var(--border);
+            border-radius: 0.75rem;
+            padding: 2rem;
+            margin-top: 1rem;
+        }
+
+        .login-panel {
+            max-width: 400px;
+            margin: 4rem auto;
+        }
+
+        .form-group {
+            margin-bottom: 1.25rem;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 600;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.6rem;
+            border: 1px solid var(--border);
+            border-radius: 0.375rem;
+            font-size: 1rem;
+        }
+
+        .admin-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 2rem;
+        }
+
+        .admin-table th, .admin-table td {
+            border: 1px solid var(--border);
+            padding: 0.75rem;
+            text-align: left;
+        }
+
+        .admin-table th { background: var(--bg); }
+
+        /* Modals */
+        .modal-overlay {
+            position: fixed;
+            top: 0; left: 0; right: 0; bottom: 0;
+            background: rgba(0,0,0,0.5);
+            display: none;
+            justify-content: center;
+            align-items: center;
+            z-index: 1000;
+        }
+
+        .modal {
+            background: white;
+            padding: 2rem;
+            border-radius: 0.75rem;
+            max-width: 400px;
+            width: 100%;
+            text-align: center;
+            box-shadow: 0 20px 25px -5px rgb(0 0 0 / 0.1);
+        }
+
+        .modal h3 { margin-bottom: 1rem; }
+        .modal p { color: var(--text-muted); margin-bottom: 1.5rem; }
+
+        .ad-banner {
+            background: #e2e8f0;
+            border: 2px dashed #cbd5e1;
+            padding: 1rem;
+            text-align: center;
+            color: #64748b;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            margin-bottom: 1.5rem;
+        }
+    </style>
+</head>
+<body>
+
+    <header>
+        <div class="logo">Studify <span style="font-size: 0.9rem; font-weight: normal; color: var(--text-muted);">The Study App (CBSE Maths)</span></div>
+        <div class="nav-actions">
+            <button id="premiumStatusBtn" class="btn-outline" onclick="openPaymentModal()">Upgrade to Premium (₹50/mo)</button>
+            <button id="adminToggleBtn" class="btn-primary" onclick="handleAdminNavClick()">Admin Dashboard</button>
+        </div>
+    </header>
+
+    <!-- USER VIEW -->
+    <div class="container" id="userView">
+        <div class="class-selector" id="classSelector"></div>
+
+        <div class="ad-banner" id="adBanner">
+            📺 Advertisement Space (Upgrade to Premium to remove ads completely)
+        </div>
+
+        <div class="access-tabs">
+            <div class="tab-link active" id="tabFree" onclick="switchAccessTab('free')">Free Access Videos</div>
+            <div class="tab-link" id="tabPremium" onclick="switchAccessTab('premium')">Premium ⭐ Videos</div>
+        </div>
+
+        <div class="main-layout">
+            <div>
+                <div class="video-player-container">
+                    <div id="videoPlayerPlaceholder" class="video-placeholder">
+                        <h2>Welcome to Studify</h2>
+                        <p style="margin-top: 0.5rem;">Select any video from the list below to begin your math lesson.</p>
+                    </div>
+                    <div id="playerFrameContainer" style="display: none; width:100%; height:100%;"></div>
+                </div>
+                <h2 id="nowPlayingTitle" style="margin-top: 1rem; font-size: 1.25rem;"></h2>
+            </div>
+            
+            <div>
+                <h3 style="margin-bottom: 1rem;">Available Lessons</h3>
+                <div class="video-grid" id="videoContainer"></div>
+            </div>
+        </div>
+    </div>
+
+    <!-- ADMIN LOGIN SECURITY GATE -->
+    <div class="container login-panel" id="loginPanel">
+        <h2 style="margin-bottom: 1rem; text-align: center;">Admin Security Access</h2>
+        <div id="loginError" style="color: red; margin-bottom: 1rem; font-weight: 600; display: none; text-align: center;">Invalid Credentials!</div>
+        <form onsubmit="tryAdminLogin(event)">
+            <div class="form-group">
+                <label>Admin Username</label>
+                <input type="text" id="adminUser" class="form-control" required placeholder="Enter username...">
+            </div>
+            <div class="form-group">
+                <label>Admin Password</label>
+                <input type="password" id="adminPass" class="form-control" required placeholder="Enter password...">
+            </div>
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 0.75rem;">Verify & Authenticate</button>
+            <button type="button" class="btn-outline" style="width: 100%; margin-top: 0.5rem;" onclick="showUserView()">Cancel</button>
+        </form>
+    </div>
+
+    <!-- ADMIN PANEL CONTROL VIEW -->
+    <div class="container admin-panel" id="adminPanel">
+        <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+            <h2>Admin Video Upload Dashboard</h2>
+            <div>
+                <button class="btn-outline" style="color: #ef4444; border-color: #fca5a5; margin-right: 0.5rem;" onclick="adminLogout()">Log Out</button>
+                <button class="btn-primary" onclick="showUserView()">View Main App</button>
+            </div>
+        </div>
+
+        <form id="videoForm" onsubmit="saveNewVideo(event)">
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>Video Title</label>
+                    <input type="text" id="vidTitle" class="form-control" placeholder="e.g., Introduction to Fractions" required>
+                </div>
+                <div class="form-group">
+                    <label>Target Class (CBSE Maths)</label>
+                    <select id="vidClass" class="form-control" required>
+                        <option value="1">Class 1</option>
+                        <option value="2">Class 2</option>
+                        <option value="3">Class 3</option>
+                        <option value="4">Class 4</option>
+                        <option value="5">Class 5</option>
+                        <option value="6">Class 6</option>
+                        <option value="7">Class 7</option>
+                        <option value="8">Class 8</option>
+                        <option value="9">Class 9</option>
+                    </select>
+                </div>
+            </div>
+
+            <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+                <div class="form-group">
+                    <label>YouTube Embed Link or URL</label>
+                    <input type="text" id="vidUrl" class="form-control" placeholder="https://www.youtube.com/embed/..." required>
+                </div>
+                <div class="form-group">
+                    <label>Pricing Access Category</label>
+                    <select id="vidAccess" class="form-control" required>
+                        <option value="free">Free Access (Ad Supported)</option>
+                        <option value="premium">Premium Access (Paid Subscribers Only)</option>
+                    </select>
+                </div>
+            </div>
+
+            <button type="submit" class="btn-primary" style="width: 100%; padding: 0.75rem;">Upload & Broadcast Video</button>
+        </form>
+
+        <table class="admin-table">
+            <thead>
+                <tr>
+                    <th>Class</th>
+                    <th>Title</th>
+                    <th>Type</th>
+                    <th>Action</th>
+                </tr>
+            </thead>
+            <tbody id="adminTableBody"></tbody>
+        </table>
+    </div>
+
+    <!-- Mock Subscription Modal -->
+    <div class="modal-overlay" id="paymentModal">
+        <div class="modal">
+            <h3 style="font-size: 1.5rem; color: var(--primary);">Unlock Studify Premium ⭐</h3>
+            <p>Get instant, unlimited access to all basic and advanced mathematics lessons from Class 1 to 9 completely ad-free.</p>
+            <div style="font-size: 2rem; font-weight: bold; margin-bottom: 1.5rem; color: var(--text);">₹50 <span style="font-size: 1rem; color: var(--text-muted);">/ month</span></div>
+            <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                <button class="btn-primary" onclick="processPremiumActivation()">Subscribe Instantly</button>
+                <button class="btn-outline" onclick="closePaymentModal()">Stay on Free Ad-Supported Tier</button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const initialVideos = [
+            { id: 1, title: "Class 9: Number Systems Part 1", class: "9", url: "https://www.youtube.com/embed/5aMek2G24R8", access: "free" },
+            { id: 2, title: "Class 9: Advanced Polynomials Practice", class: "9", url: "https://www.youtube.com/embed/T6Zz9T37qOI", access: "premium" },
+            { id: 3, title: "Class 1: Fun Counting & Addition", class: "1", url: "https://www.youtube.com/embed/uGL7xyDw_4A", access: "free" }
+        ];
+
+        // App States
+        let videos = JSON.parse(localStorage.getItem('studify_videos')) || initialVideos;
+        let isPremiumUser = JSON.parse(localStorage.getItem('studify_premium')) || false;
+        let isAdminLoggedIn = false;
+        let selectedClass = "9";
+        let selectedAccessTab = "free"; 
+
+        window.onload = function() {
+            renderClassSelectors();
+            syncAppState();
+            renderUserVideos();
+            renderAdminTable();
+        }
+
+        function syncAppState() {
+            const statusBtn = document.getElementById('premiumStatusBtn');
+            const adBanner = document.getElementById('adBanner');
+            
+            if (isPremiumUser) {
+                statusBtn.innerText = "Studify Premium Active ⭐";
+                statusBtn.className = "btn-premium-status";
+                statusBtn.onclick = null;
+                adBanner.style.display = 'none'; 
+            } else {
+                statusBtn.innerText = "Upgrade to Premium (₹50/mo)";
+                statusBtn.className = "btn-outline";
+                statusBtn.onclick = openPaymentModal;
+                adBanner.style.display = 'block';
+            }
+        }
+
+        function renderClassSelectors() {
+            const container = document.getElementById('classSelector');
+            container.innerHTML = '';
+            for (let i = 1; i <= 9; i++) {
+                const btn = document.createElement('button');
+                btn.className = `class-btn ${selectedClass === String(i) ? 'active' : ''}`;
+                btn.innerText = `Class ${i}`;
+                btn.onclick = () => selectClass(String(i));
+                container.appendChild(btn);
+            }
+        }
+
+        function selectClass(classNum) {
+            selectedClass = classNum;
+            renderClassSelectors();
+            renderUserVideos();
+        }
+
+        function switchAccessTab(type) {
+            selectedAccessTab = type;
+            document.getElementById('tabFree').classList.toggle('active', type === 'free');
+            document.getElementById('tabPremium').classList.toggle('active', type === 'premium');
+            renderUserVideos();
+        }
+
+        function renderUserVideos() {
+            const container = document.getElementById('videoContainer');
+            container.innerHTML = '';
+
+            const filtered = videos.filter(v => v.class === selectedClass && v.access === selectedAccessTab);
+
+            if (filtered.length === 0) {
+                container.innerHTML = `<p style="color:var(--text-muted); padding: 1rem;">No ${selectedAccessTab} lessons listed for Class ${selectedClass} yet.</p>`;
+                return;
+            }
+
+            filtered.forEach(video => {
+                const card = document.createElement('div');
+                card.className = 'video-card';
+                card.onclick = () => playVideo(video);
+
+                const isLocked = (video.access === 'premium' && !isPremiumUser);
+
+                card.innerHTML = `
+                    <div class="thumbnail-mock">
+                        Maths Class ${video.class}
+                        <span class="badge ${video.access === 'premium' ? 'badge-premium' : 'badge-free'}">
+                            ${video.access === 'premium' ? '⭐ Premium' : 'Free'}
+                        </span>
+                    </div>
+                    <div class="video-info">
+                        <div class="video-title">${video.title}</div>
+                        <div style="font-size:0.8rem; color: var(--text-muted)">
+                            ${isLocked ? '🔒 Subscription Locked' : '🔓 Ready to stream'}
+                        </div>
+                    </div>
+                `;
+                container.appendChild(card);
+            });
+        }
+
+        function playVideo(video) {
+            if (video.access === 'premium' && !isPremiumUser) {
+                openPaymentModal();
+                return;
+            }
+
+            const placeholder = document.getElementById('videoPlayerPlaceholder');
+            const frameContainer = document.getElementById('playerFrameContainer');
+            const nowPlayingTitle = document.getElementById('nowPlayingTitle');
+
+            placeholder.style.display = 'none';
+            frameContainer.style.display = 'block';
+            
+            let embedUrl = video.url;
+            if(embedUrl.includes('watch?v=')) {
+                embedUrl = embedUrl.replace('watch?v=', 'embed/');
+            }
+
+            frameContainer.innerHTML = `<iframe src="${embedUrl}?autoplay=1" allow="autoplay; encrypted-media" allowfullscreen></iframe>`;
+            nowPlayingTitle.innerText = `Now Playing: ${video.title}`;
+        }
+
+        /* NAVIGATION & SECURITY LOGIC */
+        function handleAdminNavClick() {
+            if (isAdminLoggedIn) {
+                showAdminDashboard();
+            } else {
+                showLoginGate();
+            }
+        }
+
+        function showLoginGate() {
+            document.getElementById('userView').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('loginPanel').style.display = 'block';
+            document.getElementById('loginError').style.display = 'none';
+        }
+
+        function tryAdminLogin(e) {
+            e.preventDefault();
+            const userInput = document.getElementById('adminUser').value;
+            const passInput = document.getElementById('adminPass').value;
+
+            // Checked against requested credentials
+            if (userInput === "Studify" && passInput === "Study") {
+                isAdminLoggedIn = true;
+                document.getElementById('adminUser').value = '';
+                document.getElementById('adminPass').value = '';
+                showAdminDashboard();
+            } else {
+                document.getElementById('loginError').style.display = 'block';
+            }
+        }
+
+        function showAdminDashboard() {
+            document.getElementById('userView').style.display = 'none';
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'block';
+            document.getElementById('adminToggleBtn').innerText = "View Main App";
+        }
+
+        function showUserView() {
+            document.getElementById('loginPanel').style.display = 'none';
+            document.getElementById('adminPanel').style.display = 'none';
+            document.getElementById('userView').style.display = 'block';
+            document.getElementById('adminToggleBtn').innerText = isAdminLoggedIn ? "Admin Dashboard" : "Admin Dashboard";
+        }
+
+        function adminLogout() {
+            isAdminLoggedIn = false;
+            showUserView();
+            alert("Logged out of Admin Session successfully.");
+        }
+
+        /* ADMIN CONTENT MANAGEMENT */
+        function saveNewVideo(e) {
+            e.preventDefault();
+            const title = document.getElementById('vidTitle').value;
+            const classVal = document.getElementById('vidClass').value;
+            const url = document.getElementById('vidUrl').value;
+            const access = document.getElementById('vidAccess').value;
+
+            const newVideo = { id: Date.now(), title, class: classVal, url, access };
+            videos.push(newVideo);
+            localStorage.setItem('studify_videos', JSON.stringify(videos));
+            
+            document.getElementById('videoForm').reset();
+            renderAdminTable();
+            renderUserVideos();
+            alert("Video broadcast successfully!");
+        }
+
+        function deleteVideo(id) {
+            if(confirm("Remove this lesson from the catalog?")) {
+                videos = videos.filter(v => v.id !== id);
+                localStorage.setItem('studify_videos', JSON.stringify(videos));
+                renderAdminTable();
+                renderUserVideos();
+            }
+        }
+
+        function renderAdminTable() {
+            const tbody = document.getElementById('adminTableBody');
+            tbody.innerHTML = '';
+
+            videos.sort((a,b) => a.class - b.class).forEach(video => {
+                const tr = document.createElement('tr');
+                tr.innerHTML = `
+                    <td><strong>Class ${video.class}</strong></td>
+                    <td>${video.title}</td>
+                    <td><span class="badge ${video.access === 'premium' ? 'badge-premium' : 'badge-free'}">${video.access.toUpperCase()}</span></td>
+                    <td><button class="btn-outline" style="color:red; border-color:#fca5a5; padding: 0.25rem 0.5rem;" onclick="deleteVideo(${video.id})">Delete</button></td>
+                `;
+                tbody.appendChild(tr);
+            });
+        }
+
+        /* PREMIUM CHECKOUT GATEWAY MOCK */
+        function openPaymentModal() { document.getElementById('paymentModal').style.display = 'flex'; }
+        function closePaymentModal() { document.getElementById('paymentModal').style.display = 'none'; }
+        
+        function processPremiumActivation() {
+            isPremiumUser = true;
+            localStorage.setItem('studify_premium', true);
+            syncAppState();
+            closePaymentModal();
+            renderUserVideos();
+            alert("Premium membership simulated successfully!");
+        }
+    </script>
+</body>
+</html>
